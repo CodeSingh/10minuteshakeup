@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
@@ -6,6 +6,7 @@
     <title>10 Minute Shakeup!</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
     <script defer src="https://use.fontawesome.com/releases/v5.0.0/js/all.js"></script>
+    <!--Rooster sound from http://soundbible.com/1218-Rooster-Crow.html-->
 </head>
 <body>
     <section class="section">
@@ -90,7 +91,8 @@
             shakeups: [],
             starttime: 600,
             isCountdownRunning: false,
-            timer: null
+            timer: null,
+            timeup: new Audio('timeup.ogg')
         },
         mutations: {
             toggleCountdown(state) {
@@ -103,6 +105,8 @@
                             if (state.starttime <= 0) {
                                 state.isCountdownRunning = false;
                                 state.starttime = 0;
+                                clearInterval(timer);
+                                state.timeup.play();
                             }
                         },
                     1000);
