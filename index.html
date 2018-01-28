@@ -12,21 +12,7 @@
     <section class="section">
         <div class="container">
             <div id="app">
-                <nav class="navbar is-transparent">
-                    <div class="navbar-brand">
-                        <div>
-                            <div class="title">
-                                10 Minute Shakeup!
-                            </div>
-                        </div>
-                    </div>
-                    <div class="navbar-menu">
-                        <div class="navbar-end">
-                            <router-link class="navbar-item" to="/">Home</router-link>
-                            <router-link class="navbar-item" to="/all">All Shakeups</router-link>
-                        </div>
-                    </div>
-                </nav>
+                <navbar></navbar>
                 <router-view></router-view>
             </div>
         </div>
@@ -79,6 +65,29 @@
 
 <template id="countdown">
     <div class="content">{{timeString}}</div>
+</template>
+
+<template id="navbar">
+    <nav class="navbar is-transparent">
+        <div class="navbar-brand">
+            <div>
+                <div class="title">
+                    10 Minute Shakeup!
+                </div>
+            </div>
+            <button class="button navbar-burger" @click="toggleMenu" :class="{'is-active': navIsActive}">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+        <div class="navbar-menu" :class="{'is-active': navIsActive}">
+            <div class="navbar-end">
+                <router-link class="navbar-item" to="/">Home</router-link>
+                <router-link class="navbar-item" to="/all">All Shakeups</router-link>
+            </div>
+        </div>
+    </nav>
 </template>
 
 <script src="https://unpkg.com/vue"></script>
@@ -156,6 +165,20 @@
                 return (this.mins < 10 ? "0" + this.mins : this.mins)
                     + ":"
                     + (this.secs < 10 ? "0" + this.secs : this.secs);
+            }
+        }
+    });
+
+    Vue.component('navbar', {
+        template: '#navbar',
+        data() {
+            return {
+                navIsActive: false
+            }
+        },
+        methods: {
+            toggleMenu: function () {
+                this.navIsActive = !this.navIsActive
             }
         }
     });
