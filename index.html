@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>10 Minute Shakeup!</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.0.0/js/all.js"></script>
+</head>
+<body>
+    <section class="section">
+        <div class="container">
+            <div id="app">
+                <nav class="navbar is-transparent">
+                    <div class="navbar-brand">
+                        <div>
+                            <div class="title">
+                                10 Minute Shakeup!
+                            </div>
+                        </div>
+                    </div>
+                    <div class="navbar-menu">
+                        <div class="navbar-end">
+                            <router-link class="navbar-item" to="/">Home</router-link>
+                            <router-link class="navbar-item" to="/all">All Shakeups</router-link>
+                        </div>
+                    </div>
+                </nav>
+                <router-view></router-view>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
+
+<template id="home">
+    <h1>Get the whole family doing a 10 minute shake up every day</h1>
+</template>
+
+
+<template id="all">
+    <ul>
+        <li v-for='shakeup in shakeups'><router-link :to="{ path: '/shakeup/' + shakeup.id }" param>{{shakeup.title }}</router-link></li>
+    </ul>
+</template>
+
+<template id="shakeup">
+    <section class="section" v-if="shakeup">
+        <div class="container">
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title has-text-centered">
+                        {{shakeup.title}}
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content has-text-centered is-size-1">
+                        <countdown :starttime="starttime"></countdown>
+                    </div>
+                    <div class="content">
+                        {{shakeup.description}}
+                    </div>
+                    <a class="content" @click="toggleCountdown">
+                        <span class="is-danger" v-if="isCountdownRunning">Stop shakeup</span>
+                        <span v-else class="is-info">Start shakeup</span>
+                    </a>
+                    <a class="content" @click="resetCountdown">Reset</a>
+                    <ul class="content" v-if="shakeup.steps">
+                        <li v-for="step in shakeup.steps">{{step.id}} {{step.description}}</li>
+                    </ul>
+                </div>
+                <footer class="card-footer">
+                </footer>
+            </div>
+        </div>
+    </section>
+</template>
+
+<template id="countdown">
+    <div class="content">{{timeString}}</div>
+</template>
+
+<script src="https://unpkg.com/vue"></script>
+<script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+<script src="https://unpkg.com/vuex" ></script>
+<script type="text/javascript">
+    const store = new Vuex.Store({
+        debug: true,
+        state: {
+            shakeups: [],
+            starttime: 600,
+            isCountdownRunning: false,
+            timer: null
+        },
+        mutations: {
+            toggleCountdown(state) {
+                state.isCountdownRunning = !state.isCountdownRunning;
+
+                if (state.isCountdownRunning) {
+                    timer = setInterval(
+                        function () {
+                            state.starttime--;
+                            if (state.starttime <= 0) {
+                                state.isCountdownRunning = false;
+                                state.starttime = 0;
+                            }
+                        },
+                    1000);
+                }
+                else {
+                    clearInterval(timer);
+                }
+            },
+            resetCountdown(state) {
+                state.starttime = 600;
+            }
+        },
+        getters: {
+            getShakeupById: (state) => (id) => {
+                
+                return state.shakeups.filter(
+                    function (el)
+                    {
+                        if (el.id == id) return el
+                    })
+                    .pop();
+            },
+            getShakeUps: state => {
+                if (this.debug) console.log('getting shakeups');
+                fetch("https://api.jsonbin.io/b/5a626c1cfb09683ccb9f2bb8/1")
+                    .then(response => response.json())
+                    .then(json => {
+                        state.shakeups = json.shakeups;
+                    });
+
+            }
+
+        }
+    })
+
+    Vue.component('countdown', {
+        template: '#countdown',
+        props: ['starttime'],
+        computed: {
+            mins: function () {
+                return parseInt(this.starttime / 60);
+            },
+            secs: function () {
+                return this.starttime % 60;
+            },
+            timeString: function () {
+                return (this.mins < 10 ? "0" + this.mins : this.mins)
+                    + ":"
+                    + (this.secs < 10 ? "0" + this.secs : this.secs);
+            }
+        }
+    });
+
+    const Home = {
+        template: '#home'
+    }
+
+    const Shakeup = {
+        template: '#shakeup',
+        props: ['shakeupid'],
+        computed: {
+            shakeup: function () {
+                return store.getters.getShakeupById(this.shakeupid);
+            },
+            starttime: function () {
+                return store.state.starttime;
+            },
+            isCountdownRunning: function () {
+                return store.state.isCountdownRunning;
+            }
+        },
+        // define methods under the `methods` object
+        methods: {
+            toggleCountdown: function (event) {
+                store.commit('toggleCountdown');
+            },
+            resetCountdown: function (event) {
+                store.commit('resetCountdown');
+            }
+                          
+        }
+
+    }
+
+    const All = {
+        template: '#all',
+        computed: {
+            shakeups() {
+                return store.state.shakeups;
+            }
+        }
+    }
+    const router = new VueRouter({
+        routes: [
+            {
+                path: '/',
+                component: Home
+            },
+            {
+                path: '/all',
+                component: All
+            },
+            {
+                path: '/shakeup/:shakeupid',
+                component: Shakeup,
+                props: true
+            }
+        ]
+    })
+
+    var vm = new Vue({
+        el: '#app',
+        router,
+        store,
+        created() {
+            store.getters.getShakeUps;
+        }
+    });
+
+</script>
