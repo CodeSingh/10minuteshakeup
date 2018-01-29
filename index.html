@@ -12,7 +12,7 @@
     <section class="section">
         <div class="container">
             <div id="app">
-                <navbar></navbar>
+                <nav-bar></nav-bar>
                 <router-view></router-view>
             </div>
         </div>
@@ -42,16 +42,23 @@
                 </header>
                 <div class="card-content">
                     <div class="content has-text-centered is-size-1">
-                        <countdown :starttime="starttime"></countdown>
+                        <count-down :starttime="starttime"></count-down>
                     </div>
                     <div class="content">
                         {{shakeup.description}}
                     </div>
-                    <a class="content" @click="toggleCountdown">
-                        <span class="is-danger" v-if="isCountdownRunning">Stop shakeup</span>
-                        <span v-else class="is-info">Start shakeup</span>
-                    </a>
-                    <a class="content" @click="resetCountdown">Reset</a>
+                    <nav class="level">
+                        <div class="level-left">
+                            <a class="content" @click="toggleCountdown">
+                                <span class="is-danger" v-if="isCountdownRunning">Stop shakeup</span>
+                                <span v-else class="is-info">Start shakeup</span>
+                            </a>
+                        </div>
+                        <div class="level-right">
+                            <a class="content" @click="resetCountdown">Reset</a>
+                        </div>
+                    </nav>
+
                     <ul class="content" v-if="shakeup.steps">
                         <li v-for="step in shakeup.steps">{{step.id}} {{step.description}}</li>
                     </ul>
@@ -151,7 +158,7 @@
         }
     })
 
-    Vue.component('countdown', {
+    Vue.component('count-down', {
         template: '#countdown',
         props: ['starttime'],
         computed: {
@@ -166,10 +173,20 @@
                     + ":"
                     + (this.secs < 10 ? "0" + this.secs : this.secs);
             }
+        },
+        filters: {
+            timeStringFilter: function (value) {
+                if (!value) return ''
+                var mins = parseInt(value / 60);
+                var secs = value % 60;
+                return (mins < 10 ? "0" + mins : mins)
+                    + ":"
+                    + (secs < 10 ? "0" + secs : secs);
+            }
         }
     });
 
-    Vue.component('navbar', {
+    Vue.component('nav-bar', {
         template: '#navbar',
         data() {
             return {
